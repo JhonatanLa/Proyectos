@@ -1,0 +1,10 @@
+{% extends 'base_generic.html' %}
+
+{% block content %}
+<h1>Resultados</h1>
+
+<!-- Aquí se mostrará la gráfica generada -->
+<img src="data:image/png;base64,{{ graphic }}" alt="Gráfica de Distribución de Edades">
+
+<!-- Otro contenido de resultados, si lo hay -->
+{% endblock %}

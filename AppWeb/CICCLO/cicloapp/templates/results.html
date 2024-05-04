@@ -1,10 +1,39 @@
 {% extends 'base_generic.html' %}
 
 {% block content %}
-<h1>Resultados</h1>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results</title>
+    <style>
+        .container {
+            display: flex;
+            justify-content: space-between;
+            min-height: 100vh; /* Altura mínima de la página */
+            width: 1000px; /* Ancho fijo del contenedor */
+            margin: 0 auto; /* Centrar el contenedor en la página */
+            padding: 20px; /* Añadir espacio alrededor del contenedor */
+        }
+        .chart {
+            width: 45%; /* Ancho de las gráficas */
+        }
+        .chart:last-child {
+            margin-left: auto; /* Mover la última gráfica hacia la derecha */
+        }
+    </style>
+</head>
+<body>
+    <h1>Resultados</h1>
+    <div class="container">
+        <div class="chart">
+            <h2>Distribución por edad</h2>
+            <img src="{{ age_chart_url }}" alt="Gráfico de Distribución de Edades">
+        </div>
+        <div class="chart">
+            <h2>Distribución por género</h2>
+            <img src="{{ gender_chart_url }}" alt="Gráfico de Distribución de Género">
+        </div>
+    </div>
+</body>
 
-<!-- Aquí se mostrará la gráfica generada -->
-<img src="data:image/png;base64,{{ graphic }}" alt="Gráfica de Distribución de Edades">
-
-<!-- Otro contenido de resultados, si lo hay -->
 {% endblock %}

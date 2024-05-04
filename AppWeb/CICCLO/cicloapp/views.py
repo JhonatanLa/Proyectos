@@ -14,7 +14,7 @@ import urllib.parse
 from django.apps import apps
 import io
 import urllib, base64
-
+import numpy as np
 
 
 def home(request):
@@ -513,7 +513,7 @@ def view_data(request):
     return render(request, 'data.html', {'data': data})
 
 
-
+# Función para generar la gráfica de barras
 def generate_age_bar_chart(request):
     # Obtener los datos de la columna edad
     age_data = DatosDemograficos.objects.values('edad').annotate(count=Count('edad')).order_by('edad')
@@ -523,32 +523,86 @@ def generate_age_bar_chart(request):
     frequencies = [item['count'] for item in age_data]
 
     # Crear una nueva figura
-    fig = Figure(figsize=(8, 6))
+    fig = Figure(figsize=(12, 6))
     ax = fig.add_subplot()
 
+    # Ajustar el ancho de las barras y la separación entre ellas
+    bar_width = 0.8  # Ancho de las barras
+    bar_spacing = 0.1  # Espacio entre barras
+
+    # Calcular la ubicación de cada barra
+    bar_positions = np.arange(len(ages))
+
     # Crear la gráfica de barras
-    ax.bar(ages, frequencies, color='skyblue')
+    ax.bar(bar_positions, frequencies, width=bar_width, color='skyblue', align='center')
 
     # Personalizar la apariencia de la gráfica
     ax.set_xlabel('Edad')
     ax.set_ylabel('Frecuencia')
     ax.set_title('Distribución de Edades')
+    ax.set_xticks(bar_positions)  # Establecer las posiciones de las barras como marcas en el eje x
+    ax.set_xticklabels(ages)  # Establecer las edades como etiquetas en el eje x
 
-    # Convertir la figura a una imagen para incrustarla en el HTML
-    buffer = io.BytesIO()
-    fig.savefig(buffer, format='png')
-    buffer.seek(0)
-    image_png = buffer.getvalue()
-    buffer.close()
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'age_distribution_chart.png')
+    fig.savefig(chart_path)
 
-    # Convertir la imagen a base64
-    graphic = base64.b64encode(image_png).decode('utf-8')
-    graphic = urllib.parse.quote(graphic)
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'age_distribution_chart.png')
 
-    # Renderizar la plantilla HTML con la imagen incrustada
-    context = {'graphic': graphic}
-    return render(request, 'results.html', context)  # Pasar request como primer argumento
+    return chart_url  # Devolver la URL de la imagen
+
+
+
+def generate_gender_bar_chart(request):
+    # Obtener los datos de la columna género
+    gender_data = DatosDemograficos.objects.values('genero').annotate(count=Count('genero')).order_by('genero')
+
+    # Extraer los géneros y sus frecuencias
+    genders = [item['genero'] for item in gender_data]
+    frequencies = [item['count'] for item in gender_data]
+
+    # Crear una nueva figura
+    fig = Figure(figsize=(8, 6))
+    ax = fig.add_subplot()
+
+    # Ajustar el ancho de las barras y la separación entre ellas
+    bar_width = 0.5  # Ancho de las barras
+
+    # Calcular la ubicación de cada barra
+    bar_positions = np.arange(len(genders))
+
+    # Crear la gráfica de barras
+    ax.bar(bar_positions, frequencies, width=bar_width, color='lightgreen', align='center')
+
+    # Personalizar la apariencia de la gráfica
+    ax.set_xlabel('Género')
+    ax.set_ylabel('Frecuencia')
+    ax.set_title('Distribución de Género')
+    ax.set_xticks(bar_positions)  # Establecer las posiciones de las barras como marcas en el eje x
+    ax.set_xticklabels(genders)  # Establecer los géneros como etiquetas en el eje x
+
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'gender_distribution_chart.png')
+    fig.savefig(chart_path)
+
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'gender_distribution_chart.png')
+
+    return chart_url  # Devolver la URL de la imagen
+
+
 
 def view_results(request):
-    # Llamar a la función para generar la gráfica de barras
-    return generate_age_bar_chart(request)
+
+    # Llamar a la función para generar la gráfica de barras y obtener la URL de la imagen
+    age_chart_url = generate_age_bar_chart(request)
+    gender_chart_url = generate_gender_bar_chart(request)
+    
+    # Renderizar la plantilla HTML con las URLs de las imágenes
+    context = {'age_chart_url': age_chart_url, 'gender_chart_url': gender_chart_url}
+    return render(request, 'results.html', context)

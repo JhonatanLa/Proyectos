@@ -5,22 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Results</title>
-    <style>
-        .container {
-            display: flex;
-            justify-content: space-between;
-            min-height: 100vh; /* Altura mínima de la página */
-            width: 1000px; /* Ancho fijo del contenedor */
-            margin: 0 auto; /* Centrar el contenedor en la página */
-            padding: 20px; /* Añadir espacio alrededor del contenedor */
-        }
-        .chart {
-            width: 45%; /* Ancho de las gráficas */
-        }
-        .chart:last-child {
-            margin-left: auto; /* Mover la última gráfica hacia la derecha */
-        }
-    </style>
 </head>
 <body>
     <h1>Resultados</h1>
@@ -33,7 +17,55 @@
             <h2>Distribución por género</h2>
             <img src="{{ gender_chart_url }}" alt="Gráfico de Distribución de Género">
         </div>
+        <div class="chart">
+            <h2>Distribución por área de empresa</h2>
+            <img src="{{ area_empresa_chart_url }}" alt="Gráfico de Distribución de Área de Empresa">
+        </div>
+        <div class="chart">
+            <h2>Distribución por antigüedad en la empresa</h2>
+            <img src="{{ antiguedad_empresa_chart_url }}" alt="Gráfico de Distribución de Antigüedad en la Empresa">
+        </div>
+        <div class="chart">
+            <h2>Distribución 1. La normas que rigen la empresa admiten la expresión de la forma de ser de sus empleados.</h2>
+            <img src="{{ pregunta_1_chart_url }}" alt="1. La normas que rigen la empresa admiten la expresión de la forma de ser de sus empleados.">
+        </div>
+        <div class="chart">
+            <h2>Distribución 2. Los empleados contribuyen con ideas en la toma de decisiones de la empresa.</h2>
+            <img src="{{ pregunta_2_chart_url }}" alt="2. Los empleados contribuyen con ideas en la toma de decisiones de la empresa.">
+        </div>
+        <div class="chart">
+            <h2>Distribución 3. A usted le interesa participar en la toma de las decisiones de la empresa.</h2>
+            <img src="{{ pregunta_3_chart_url }}" alt="3. A usted le interesa participar en la toma de las decisiones de la empresa.">
+        </div>
+        <div class="chart">
+            <h2>Distribución 4. En la empresa cuando se crea una norma, previamente las directivas hacen consultas con los empleados.</h2>
+            <img src="{{ pregunta_4_chart_url }}" alt="4. En la empresa cuando se crea una norma, previamente las directivas hacen consultas con los empleados.">
+        </div>
+        <div class="chart">
+            <h2>Distribución 5. En la empresa a algunas personas les aplican las normas con bastante rigor mientras a otras les perdonan todo.</h2>
+            <img src="{{ pregunta_5_chart_url }}" alt="5. En la empresa a algunas personas les aplican las normas con bastante rigor mientras a otras les perdonan todo.">
+        </div>
+        <div class="chart">
+            <h2>Distribución 6. En general, la empresa está mejorando en relación a como era cuando usted ingresó como empleado.</h2>
+            <img src="{{ pregunta_6_chart_url }}" alt="6. En general, la empresa está mejorando en relación a como era cuando usted ingresó como empleado.">
+        </div>
+        <div class="chart">
+            <h2>Distribución 7. En relación con el día de su ingreso como empleado, usted nota mejoría en el desempeño de los empleados de la empresa.</h2>
+            <img src="{{ pregunta_7_chart_url }}" alt="7. En relación con el día de su ingreso como empleado, usted nota mejoría en el desempeño de los empleados de la empresa.">
+        </div>
+        <div class="chart">
+            <h2>Distribución 8. La comunicación de trabajo, desde su jefe inmediato hacia usted es fácil.</h2>
+            <img src="{{ pregunta_8_chart_url }}" alt="8. La comunicación de trabajo, desde su jefe inmediato hacia usted es fácil.">
+        </div>
+        <div class="chart">
+            <h2>Distribución 9. La comunicación de trabajo, desde usted hacia su jefe inmediato es fácil.</h2>
+            <img src="{{ pregunta_9_chart_url }}" alt="9. La comunicación de trabajo, desde usted hacia su jefe inmediato es fácil.">
+        </div>
+        <div class="chart">
+            <h2>Distribución 10. La comunicación con los grupos de trabajo con los que usted necesita relacionarse es fácil.</h2>
+            <img src="{{ pregunta_10_chart_url }}" alt="10. La comunicación con los grupos de trabajo con los que usted necesita relacionarse es fácil.">
+        </div>
     </div>
+    <div style="height: 10000px;"></div>
 </body>
-
 {% endblock %}

@@ -15,6 +15,11 @@ from django.apps import apps
 import io
 import urllib, base64
 import numpy as np
+import unicodedata
+
+
+
+
 
 
 def home(request):
@@ -452,8 +457,12 @@ def upload_file(request):
 
 
 
+
+
 def base_generic(request):
     return render(request, 'base_generic.html')
+
+
 
 
 
@@ -462,23 +471,18 @@ def delete_data(request):
     for model in apps.get_app_config('cicloapp').get_models():
         model.objects.all().delete()
 
-    # Eliminar las gráficas generadas
-    delete_chart('age_distribution_chart.png')
-    for model in apps.get_app_config('cicloapp').get_models():
-        for field in model._meta.fields:
-            delete_chart(f'{model.__name__}_{field.name}_chart.png')
-
-    # Redirigir a la vista base_generic
-    return redirect('base_generic')
-
-def delete_chart(chart_filename):
+    # Eliminar todas las gráficas generadas
     chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
-    chart_path = os.path.join(chart_dir, chart_filename)
-    if os.path.exists(chart_path):
-        os.remove(chart_path)
+    for chart_file in os.listdir(chart_dir):
+        chart_path = os.path.join(chart_dir, chart_file)
+        if os.path.isfile(chart_path):
+            os.remove(chart_path)
 
     # Redirigir a la vista base_generic
     return redirect('base_generic')
+
+
+
 
 
 
@@ -513,6 +517,12 @@ def view_data(request):
     return render(request, 'data.html', {'data': data})
 
 
+
+
+
+
+
+
 # Función para generar la gráfica de barras
 def generate_age_bar_chart(request):
     # Obtener los datos de la columna edad
@@ -523,8 +533,7 @@ def generate_age_bar_chart(request):
     frequencies = [item['count'] for item in age_data]
 
     # Crear una nueva figura
-    fig = Figure(figsize=(12, 6))
-    ax = fig.add_subplot()
+    fig, ax = plt.subplots(figsize=(12, 6))
 
     # Ajustar el ancho de las barras y la separación entre ellas
     bar_width = 0.8  # Ancho de las barras
@@ -534,7 +543,7 @@ def generate_age_bar_chart(request):
     bar_positions = np.arange(len(ages))
 
     # Crear la gráfica de barras
-    ax.bar(bar_positions, frequencies, width=bar_width, color='skyblue', align='center')
+    bars = ax.bar(bar_positions, frequencies, width=bar_width, color='skyblue', align='center')
 
     # Personalizar la apariencia de la gráfica
     ax.set_xlabel('Edad')
@@ -543,16 +552,35 @@ def generate_age_bar_chart(request):
     ax.set_xticks(bar_positions)  # Establecer las posiciones de las barras como marcas en el eje x
     ax.set_xticklabels(ages)  # Establecer las edades como etiquetas en el eje x
 
+    # Mostrar la cantidad exacta de veces que se repite cada edad en el eje y
+    for i, rect in enumerate(bars):
+        height = rect.get_height()
+        ax.annotate('{}'.format(height),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Descripción al lado derecho de la gráfica (horizontal)
+    description = 'Esta gráfica muestra la distribución de edades con la frecuencia exacta de cada edad'
+    ax.text(1.02, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=10))
+
     # Guardar la imagen en un directorio
     chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
     os.makedirs(chart_dir, exist_ok=True)
     chart_path = os.path.join(chart_dir, 'age_distribution_chart.png')
+    fig.tight_layout(pad=4.0)  # Ajuste automático del diseño para que el texto no se corte
     fig.savefig(chart_path)
 
     # Obtener la URL de la imagen
     chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'age_distribution_chart.png')
 
     return chart_url  # Devolver la URL de la imagen
+
+
+
+
 
 
 
@@ -565,8 +593,7 @@ def generate_gender_bar_chart(request):
     frequencies = [item['count'] for item in gender_data]
 
     # Crear una nueva figura
-    fig = Figure(figsize=(8, 6))
-    ax = fig.add_subplot()
+    fig, ax = plt.subplots(figsize=(12, 6))
 
     # Ajustar el ancho de las barras y la separación entre ellas
     bar_width = 0.5  # Ancho de las barras
@@ -575,7 +602,7 @@ def generate_gender_bar_chart(request):
     bar_positions = np.arange(len(genders))
 
     # Crear la gráfica de barras
-    ax.bar(bar_positions, frequencies, width=bar_width, color='lightgreen', align='center')
+    bars = ax.bar(bar_positions, frequencies, width=bar_width, color='lightgreen', align='center')
 
     # Personalizar la apariencia de la gráfica
     ax.set_xlabel('Género')
@@ -584,10 +611,25 @@ def generate_gender_bar_chart(request):
     ax.set_xticks(bar_positions)  # Establecer las posiciones de las barras como marcas en el eje x
     ax.set_xticklabels(genders)  # Establecer los géneros como etiquetas en el eje x
 
+    # Mostrar la cantidad exacta de veces que se repite cada género en el eje y
+    for i, rect in enumerate(bars):
+        height = rect.get_height()
+        ax.annotate('{}'.format(height),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Descripción al lado derecho de la gráfica (horizontal)
+    description = 'Esta gráfica muestra la distribución de género con la frecuencia exacta de cada género'
+    ax.text(1.02, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=10))
+
     # Guardar la imagen en un directorio
     chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
     os.makedirs(chart_dir, exist_ok=True)
     chart_path = os.path.join(chart_dir, 'gender_distribution_chart.png')
+    fig.tight_layout(pad=4.0)  # Ajuste automático del diseño para que el texto no se corte
     fig.savefig(chart_path)
 
     # Obtener la URL de la imagen
@@ -597,12 +639,793 @@ def generate_gender_bar_chart(request):
 
 
 
+
+
+
+
+
+
+
+def generate_area_empresa_chart(request):
+    # Obtener los datos de la columna "area_empresa"
+    area_empresa_data = DatosDemograficos.objects.values('area_empresa').annotate(count=Count('area_empresa')).order_by('area_empresa')
+
+    # Normalizar las áreas de empresa y sus frecuencias
+    areas_empresa = [item['area_empresa'] for item in area_empresa_data]
+    frequencies = [item['count'] for item in area_empresa_data]
+
+    # Crear una nueva figura
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    # Crear la gráfica de barras
+    bars = ax.bar(areas_empresa, frequencies, color='skyblue')
+
+    # Personalizar la apariencia de la gráfica
+    ax.set_xlabel('Área de Empresa')
+    ax.set_ylabel('Frecuencia')
+    ax.set_title('Distribución de Áreas de Empresa')
+
+    # Rotar los nombres de las barras y ajustar el espaciado
+    ax.set_xticks(range(len(areas_empresa)))  # Establecer las posiciones de las barras como marcas en el eje x
+    ax.set_xticklabels(areas_empresa, rotation=45, ha='right')  # Rotar los nombres de las barras
+
+    # Mostrar la cantidad exacta de veces que se repite cada área de empresa en el eje y
+    for i, rect in enumerate(bars):
+        height = rect.get_height()
+        ax.annotate('{}'.format(height),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Descripción al lado derecho de la gráfica (horizontal)
+    description = 'Esta gráfica muestra la distribución de áreas de empresa con la frecuencia exacta de cada área'
+    ax.text(1.02, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=10))
+
+    # Ajustar automáticamente los parámetros de la figura
+    fig.tight_layout()
+
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'area_empresa_chart.png')
+    fig.savefig(chart_path)
+
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'area_empresa_chart.png')
+
+    return chart_url
+
+
+
+
+
+
+
+
+
+def generate_antiguedad_empresa_chart(request):
+    # Obtener los datos de la columna "antiguedad_empresa"
+    antiguedad_empresa_data = DatosDemograficos.objects.values('antiguedad_empresa').annotate(count=Count('antiguedad_empresa')).order_by('antiguedad_empresa')
+
+    # Extraer las antigüedades de empresa y sus frecuencias
+    antiguedades_empresa = [item['antiguedad_empresa'] for item in antiguedad_empresa_data]
+    frequencies = [item['count'] for item in antiguedad_empresa_data]
+
+    # Crear una nueva figura
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    # Crear la gráfica de barras
+    bars = ax.bar(antiguedades_empresa, frequencies, color='skyblue')
+
+    # Personalizar la apariencia de la gráfica
+    ax.set_xlabel('Antigüedad en la Empresa')
+    ax.set_ylabel('Frecuencia')
+    ax.set_title('Distribución de Antigüedad en la Empresa')
+
+    # Mostrar la cantidad exacta de veces que se repite cada antigüedad en la empresa en el eje y
+    for i, rect in enumerate(bars):
+        height = rect.get_height()
+        ax.annotate('{}'.format(height),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Descripción al lado derecho de la gráfica (horizontal)
+    description = 'Esta gráfica muestra la distribución de antigüedad en la empresa con la frecuencia exacta de cada nivel'
+    ax.text(1.02, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=10))
+
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'antiguedad_empresa_chart.png')
+    fig.savefig(chart_path)
+
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'antiguedad_empresa_chart.png')
+
+    return chart_url
+
+
+
+
+
+def generate_pregunta_1_chart(request):
+    # Obtener los datos de la pregunta_1
+    pregunta_1_data = PreguntasCerradas.objects.values('pregunta_1').annotate(count=Count('pregunta_1')).order_by('pregunta_1')
+
+    # Extraer las opciones de la pregunta_1 y sus frecuencias
+    opciones = [item['pregunta_1'] for item in pregunta_1_data]
+    frequencies = [item['count'] for item in pregunta_1_data]
+
+    # Calcular porcentajes
+    total_responses = sum(frequencies)
+    percentages = [count / total_responses * 100 for count in frequencies]
+
+    # Crear una nueva figura
+    fig, ax = plt.subplots(figsize=(16, 6))
+
+    # Ajustar el ancho de las barras
+    bar_width = 0.5
+
+    # Crear la gráfica de barras
+    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+
+    # Personalizar la apariencia de la gráfica
+    ax.set_xlabel('Opciones')
+    ax.set_ylabel('Frecuencia')
+    ax.set_title('1. La normas que rigen la empresa admiten la expresión de la forma de ser de sus empleados.')
+
+    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    for i, rect in enumerate(bars):
+        height = rect.get_height()
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Descripción al lado derecho de la gráfica
+    description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 1.\n\n'
+    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
+
+    # Ajustar automáticamente los parámetros de la figura
+    fig.tight_layout()
+
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'pregunta_1_chart.png')
+    fig.savefig(chart_path)
+
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'pregunta_1_chart.png')
+
+    return chart_url
+
+
+
+
+
+
+
+
+def generate_pregunta_2_chart(request):
+    # Obtener los datos de la pregunta_2
+    pregunta_2_data = PreguntasCerradas.objects.values('pregunta_2').annotate(count=Count('pregunta_2')).order_by('pregunta_2')
+
+    # Extraer las opciones de la pregunta_2 y sus frecuencias
+    opciones = [item['pregunta_2'] for item in pregunta_2_data]
+    frequencies = [item['count'] for item in pregunta_2_data]
+
+    # Calcular porcentajes
+    total_responses = sum(frequencies)
+    percentages = [count / total_responses * 100 for count in frequencies]
+
+    # Crear una nueva figura
+    fig, ax = plt.subplots(figsize=(16, 6))
+
+    # Ajustar el ancho de las barras
+    bar_width = 0.5
+
+    # Crear la gráfica de barras
+    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+
+    # Personalizar la apariencia de la gráfica
+    ax.set_xlabel('Opciones')
+    ax.set_ylabel('Frecuencia')
+    ax.set_title('2. Los empleados contribuyen con ideas en la toma de decisiones de la empresa')
+
+    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    for i, rect in enumerate(bars):
+        height = rect.get_height()
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Descripción al lado derecho de la gráfica
+    description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 2.\n\n'
+    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
+
+    # Ajustar automáticamente los parámetros de la figura
+    fig.tight_layout()
+
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'pregunta_2_chart.png')
+    fig.savefig(chart_path)
+
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'pregunta_2_chart.png')
+
+    return chart_url
+
+
+
+
+
+
+def generate_pregunta_3_chart(request):
+    # Obtener los datos de la pregunta_3
+    pregunta_3_data = PreguntasCerradas.objects.values('pregunta_3').annotate(count=Count('pregunta_3')).order_by('pregunta_3')
+
+    # Extraer las opciones de la pregunta_3 y sus frecuencias
+    opciones = [item['pregunta_3'] for item in pregunta_3_data]
+    frequencies = [item['count'] for item in pregunta_3_data]
+
+    # Calcular porcentajes
+    total_responses = sum(frequencies)
+    percentages = [count / total_responses * 100 for count in frequencies]
+
+    # Crear una nueva figura
+    fig, ax = plt.subplots(figsize=(16, 6))
+
+    # Ajustar el ancho de las barras
+    bar_width = 0.5
+
+    # Crear la gráfica de barras
+    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+
+    # Personalizar la apariencia de la gráfica
+    ax.set_xlabel('Opciones')
+    ax.set_ylabel('Frecuencia')
+    ax.set_title('3. A usted le interesa participar en la toma de las decisiones de la empresa.')
+
+    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    for i, rect in enumerate(bars):
+        height = rect.get_height()
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Descripción al lado derecho de la gráfica
+    description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 3.\n\n'
+    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
+
+    # Ajustar automáticamente los parámetros de la figura
+    fig.tight_layout()
+
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'pregunta_3_chart.png')
+    fig.savefig(chart_path)
+
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'pregunta_3_chart.png')
+
+    return chart_url
+
+
+
+
+
+
+def generate_pregunta_4_chart(request):
+    # Obtener los datos de la pregunta_4
+    pregunta_4_data = PreguntasCerradas.objects.values('pregunta_4').annotate(count=Count('pregunta_4')).order_by('pregunta_4')
+
+    # Extraer las opciones de la pregunta_4 y sus frecuencias
+    opciones = [item['pregunta_4'] for item in pregunta_4_data]
+    frequencies = [item['count'] for item in pregunta_4_data]
+
+    # Calcular porcentajes
+    total_responses = sum(frequencies)
+    percentages = [count / total_responses * 100 for count in frequencies]
+
+    # Crear una nueva figura
+    fig, ax = plt.subplots(figsize=(16, 6))
+
+    # Ajustar el ancho de las barras
+    bar_width = 0.5
+
+    # Crear la gráfica de barras
+    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+
+    # Personalizar la apariencia de la gráfica
+    ax.set_xlabel('Opciones')
+    ax.set_ylabel('Frecuencia')
+    ax.set_title('4. En la empresa cuando se crea una norma, previamente las directivas hacen consultas con los empleados.')
+
+    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    for i, rect in enumerate(bars):
+        height = rect.get_height()
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Descripción al lado derecho de la gráfica
+    description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 4.\n\n'
+    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
+
+    # Ajustar automáticamente los parámetros de la figura
+    fig.tight_layout()
+
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'pregunta_4_chart.png')
+    fig.savefig(chart_path)
+
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'pregunta_4_chart.png')
+
+    return chart_url
+
+
+
+
+
+
+
+def generate_pregunta_5_chart(request):
+    # Obtener los datos de la pregunta_5
+    pregunta_5_data = PreguntasCerradas.objects.values('pregunta_5').annotate(count=Count('pregunta_5')).order_by('pregunta_5')
+
+    # Extraer las opciones de la pregunta_5 y sus frecuencias
+    opciones = [item['pregunta_5'] for item in pregunta_5_data]
+    frequencies = [item['count'] for item in pregunta_5_data]
+
+    # Calcular porcentajes
+    total_responses = sum(frequencies)
+    percentages = [count / total_responses * 100 for count in frequencies]
+
+    # Crear una nueva figura
+    fig, ax = plt.subplots(figsize=(16, 6))
+
+    # Ajustar el ancho de las barras
+    bar_width = 0.5
+
+    # Crear la gráfica de barras
+    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+
+    # Personalizar la apariencia de la gráfica
+    ax.set_xlabel('Opciones')
+    ax.set_ylabel('Frecuencia')
+    ax.set_title('5. En la empresa a algunas personas les aplican las normas con bastante rigor mientras a otras les perdonan todo.')
+
+    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    for i, rect in enumerate(bars):
+        height = rect.get_height()
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Descripción al lado derecho de la gráfica
+    description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 5.\n\n'
+    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
+
+    # Ajustar automáticamente los parámetros de la figura
+    fig.tight_layout()
+
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'pregunta_5_chart.png')
+    fig.savefig(chart_path)
+
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'pregunta_5_chart.png')
+
+    return chart_url
+
+
+
+
+
+
+
+
+
+def generate_pregunta_6_chart(request):
+    # Obtener los datos de la pregunta_6
+    pregunta_6_data = PreguntasCerradas.objects.values('pregunta_6').annotate(count=Count('pregunta_6')).order_by('pregunta_6')
+
+    # Extraer las opciones de la pregunta_6 y sus frecuencias
+    opciones = [item['pregunta_6'] for item in pregunta_6_data]
+    frequencies = [item['count'] for item in pregunta_6_data]
+
+    # Calcular porcentajes
+    total_responses = sum(frequencies)
+    percentages = [count / total_responses * 100 for count in frequencies]
+
+    # Crear una nueva figura
+    fig, ax = plt.subplots(figsize=(16, 6))
+
+    # Ajustar el ancho de las barras
+    bar_width = 0.5
+
+    # Crear la gráfica de barras
+    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+
+    # Personalizar la apariencia de la gráfica
+    ax.set_xlabel('Opciones')
+    ax.set_ylabel('Frecuencia')
+    ax.set_title('6. En general, la empresa está mejorando en relación a como era cuando usted ingresó como empleado.')
+
+    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    for i, rect in enumerate(bars):
+        height = rect.get_height()
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Descripción al lado derecho de la gráfica
+    description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 6.\n\n'
+    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
+
+    # Ajustar automáticamente los parámetros de la figura
+    fig.tight_layout()
+
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'pregunta_6_chart.png')
+    fig.savefig(chart_path)
+
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'pregunta_6_chart.png')
+
+    return chart_url
+
+
+
+
+
+
+
+def generate_pregunta_7_chart(request):
+    # Obtener los datos de la pregunta_7
+    pregunta_7_data = PreguntasCerradas.objects.values('pregunta_7').annotate(count=Count('pregunta_7')).order_by('pregunta_7')
+
+    # Extraer las opciones de la pregunta_7 y sus frecuencias
+    opciones = [item['pregunta_7'] for item in pregunta_7_data]
+    frequencies = [item['count'] for item in pregunta_7_data]
+
+    # Calcular porcentajes
+    total_responses = sum(frequencies)
+    percentages = [count / total_responses * 100 for count in frequencies]
+
+    # Crear una nueva figura
+    fig, ax = plt.subplots(figsize=(16, 6))
+
+    # Ajustar el ancho de las barras
+    bar_width = 0.5
+
+    # Crear la gráfica de barras
+    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+
+    # Personalizar la apariencia de la gráfica
+    ax.set_xlabel('Opciones')
+    ax.set_ylabel('Frecuencia')
+    ax.set_title('7. En relación con el día de su ingreso como empleado, usted nota mejoría en el desempeño de los empleados de la empresa.')
+
+    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    for i, rect in enumerate(bars):
+        height = rect.get_height()
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Descripción al lado derecho de la gráfica
+    description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 7.\n\n'
+    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
+
+    # Ajustar automáticamente los parámetros de la figura
+    fig.tight_layout()
+
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'pregunta_7_chart.png')
+    fig.savefig(chart_path)
+
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'pregunta_7_chart.png')
+
+    return chart_url
+
+
+
+
+
+def generate_pregunta_8_chart(request):
+    # Obtener los datos de la pregunta_8
+    pregunta_8_data = PreguntasCerradas.objects.values('pregunta_8').annotate(count=Count('pregunta_8')).order_by('pregunta_8')
+
+    # Extraer las opciones de la pregunta_8 y sus frecuencias
+    opciones = [item['pregunta_8'] for item in pregunta_8_data]
+    frequencies = [item['count'] for item in pregunta_8_data]
+
+    # Calcular porcentajes
+    total_responses = sum(frequencies)
+    percentages = [count / total_responses * 100 for count in frequencies]
+
+    # Crear una nueva figura
+    fig, ax = plt.subplots(figsize=(16, 6))
+
+    # Ajustar el ancho de las barras
+    bar_width = 0.5
+
+    # Crear la gráfica de barras
+    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+
+    # Personalizar la apariencia de la gráfica
+    ax.set_xlabel('Opciones')
+    ax.set_ylabel('Frecuencia')
+    ax.set_title('8. La comunicación de trabajo, desde su jefe inmediato hacia usted es fácil.')
+
+    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    for i, rect in enumerate(bars):
+        height = rect.get_height()
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Descripción al lado derecho de la gráfica
+    description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 8.\n\n'
+    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
+
+    # Ajustar automáticamente los parámetros de la figura
+    fig.tight_layout()
+
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'pregunta_8_chart.png')
+    fig.savefig(chart_path)
+
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'pregunta_8_chart.png')
+
+    return chart_url
+
+
+
+
+
+
+
+
+
+
+def generate_pregunta_9_chart(request):
+    # Obtener los datos de la pregunta_9
+    pregunta_9_data = PreguntasCerradas.objects.values('pregunta_9').annotate(count=Count('pregunta_9')).order_by('pregunta_9')
+
+    # Extraer las opciones de la pregunta_9 y sus frecuencias
+    opciones = [item['pregunta_9'] for item in pregunta_9_data]
+    frequencies = [item['count'] for item in pregunta_9_data]
+
+    # Calcular porcentajes
+    total_responses = sum(frequencies)
+    percentages = [count / total_responses * 100 for count in frequencies]
+
+    # Crear una nueva figura
+    fig, ax = plt.subplots(figsize=(16, 6))
+
+    # Ajustar el ancho de las barras
+    bar_width = 0.5
+
+    # Crear la gráfica de barras
+    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+
+    # Personalizar la apariencia de la gráfica
+    ax.set_xlabel('Opciones')
+    ax.set_ylabel('Frecuencia')
+    ax.set_title('9. La comunicación de trabajo, desde usted hacia su jefe inmediato es fácil.')
+
+    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    for i, rect in enumerate(bars):
+        height = rect.get_height()
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Descripción al lado derecho de la gráfica
+    description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 9.\n\n'
+    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
+
+    # Ajustar automáticamente los parámetros de la figura
+    fig.tight_layout()
+
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'pregunta_9_chart.png')
+    fig.savefig(chart_path)
+
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'pregunta_9_chart.png')
+
+    return chart_url
+
+
+
+
+
+
+
+
+
+def generate_pregunta_10_chart(request):
+    # Obtener los datos de la pregunta_10
+    pregunta_10_data = PreguntasCerradas.objects.values('pregunta_10').annotate(count=Count('pregunta_10')).order_by('pregunta_10')
+
+    # Extraer las opciones de la pregunta_10 y sus frecuencias
+    opciones = [item['pregunta_10'] for item in pregunta_10_data]
+    frequencies = [item['count'] for item in pregunta_10_data]
+
+    # Calcular porcentajes
+    total_responses = sum(frequencies)
+    percentages = [count / total_responses * 100 for count in frequencies]
+
+    # Crear una nueva figura
+    fig, ax = plt.subplots(figsize=(16, 6))
+
+    # Ajustar el ancho de las barras
+    bar_width = 0.5
+
+    # Crear la gráfica de barras
+    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+
+    # Personalizar la apariencia de la gráfica
+    ax.set_xlabel('Opciones')
+    ax.set_ylabel('Frecuencia')
+    ax.set_title('10. La comunicación con los grupos de trabajo con los que usted necesita relacionarse es fácil.')
+
+    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    for i, rect in enumerate(bars):
+        height = rect.get_height()
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Descripción al lado derecho de la gráfica
+    description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 10.\n\n'
+    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
+
+    # Ajustar automáticamente los parámetros de la figura
+    fig.tight_layout()
+
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'pregunta_10_chart.png')
+    fig.savefig(chart_path)
+
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'pregunta_10_chart.png')
+
+    return chart_url
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def view_results(request):
 
     # Llamar a la función para generar la gráfica de barras y obtener la URL de la imagen
     age_chart_url = generate_age_bar_chart(request)
     gender_chart_url = generate_gender_bar_chart(request)
-    
+    area_empresa_chart_url = generate_area_empresa_chart(request)
+    antiguedad_empresa_chart_url = generate_antiguedad_empresa_chart(request)
+    pregunta_1_chart_url = generate_pregunta_1_chart(request)
+    pregunta_2_chart_url = generate_pregunta_2_chart(request)
+    pregunta_3_chart_url = generate_pregunta_3_chart(request)
+    pregunta_4_chart_url = generate_pregunta_4_chart(request)
+    pregunta_5_chart_url = generate_pregunta_5_chart(request)
+    pregunta_6_chart_url = generate_pregunta_6_chart(request)
+    pregunta_7_chart_url = generate_pregunta_7_chart(request)
+    pregunta_8_chart_url = generate_pregunta_8_chart(request)
+    pregunta_9_chart_url = generate_pregunta_9_chart(request)
+    pregunta_10_chart_url = generate_pregunta_10_chart(request)
+
+
+
+
+
+
+
+
+
+
     # Renderizar la plantilla HTML con las URLs de las imágenes
-    context = {'age_chart_url': age_chart_url, 'gender_chart_url': gender_chart_url}
+    context = {
+        'age_chart_url': age_chart_url,
+        'gender_chart_url': gender_chart_url,
+        'area_empresa_chart_url': area_empresa_chart_url,
+        'antiguedad_empresa_chart_url': antiguedad_empresa_chart_url,
+        'pregunta_1_chart_url': pregunta_1_chart_url,
+        'pregunta_2_chart_url': pregunta_2_chart_url,
+        'pregunta_3_chart_url': pregunta_3_chart_url,
+        'pregunta_4_chart_url': pregunta_4_chart_url,
+        'pregunta_5_chart_url': pregunta_5_chart_url,
+        'pregunta_6_chart_url': pregunta_6_chart_url,
+        'pregunta_7_chart_url': pregunta_7_chart_url,
+        'pregunta_8_chart_url': pregunta_8_chart_url,
+        'pregunta_9_chart_url': pregunta_9_chart_url,
+        'pregunta_10_chart_url': pregunta_10_chart_url,
+    }
     return render(request, 'results.html', context)

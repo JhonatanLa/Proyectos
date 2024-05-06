@@ -1370,6 +1370,61 @@ def generate_pregunta_10_chart(request):
 
 
 
+def generate_pregunta_43_opcion_1_chart(request):
+    # Obtener los datos de la pregunta 43, opción 1
+    pregunta_43_opcion_1_data = PreguntaImportancia.objects.values('pregunta_43_opcion_1').annotate(count=Count('pregunta_43_opcion_1')).order_by('pregunta_43_opcion_1')
+
+    # Extraer las respuestas y sus frecuencias
+    opciones = [item['pregunta_43_opcion_1'] for item in pregunta_43_opcion_1_data]
+    frequencies = [item['count'] for item in pregunta_43_opcion_1_data]
+
+    # Calcular porcentajes
+    total_responses = sum(frequencies)
+    percentages = [count / total_responses * 100 for count in frequencies]
+
+    # Crear una nueva figura
+    fig, ax = plt.subplots(figsize=(16, 6))
+
+    # Ajustar el ancho de las barras
+    bar_width = 0.5
+
+    # Crear la gráfica de barras
+    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+
+    # Personalizar la apariencia de la gráfica
+    ax.set_xlabel('Opciones')
+    ax.set_ylabel('Frecuencia')
+    ax.set_title('Importancia de la razón por la cual trabaja aquí: "Me siento bien con mis compañeros"')
+
+    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    for i, rect in enumerate(bars):
+        height = rect.get_height()
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Descripción al lado derecho de la gráfica
+    description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 43, opción 1.\n\n'
+    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.\n\n'
+    description += '1) La menos importante\n2) Medianamente importante\n3) La más importante'
+    ax.text(1.05, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
+
+    # Ajustar automáticamente los parámetros de la figura
+    fig.tight_layout()
+
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'pregunta_43_opcion_1_chart.png')
+    fig.savefig(chart_path)
+
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'pregunta_43_opcion_1_chart.png')
+
+    return chart_url
 
 
 
@@ -1378,6 +1433,63 @@ def generate_pregunta_10_chart(request):
 
 
 
+
+
+def generate_pregunta_43_opcion_2_chart(request):
+    # Obtener los datos de la pregunta 43, opción 2
+    pregunta_43_opcion_2_data = PreguntaImportancia.objects.values('pregunta_43_opcion_2').annotate(count=Count('pregunta_43_opcion_2')).order_by('pregunta_43_opcion_2')
+
+    # Extraer las respuestas y sus frecuencias
+    opciones = [item['pregunta_43_opcion_2'] for item in pregunta_43_opcion_2_data]
+    frequencies = [item['count'] for item in pregunta_43_opcion_2_data]
+
+    # Calcular porcentajes
+    total_responses = sum(frequencies)
+    percentages = [count / total_responses * 100 for count in frequencies]
+
+    # Crear una nueva figura
+    fig, ax = plt.subplots(figsize=(16, 6))
+
+    # Ajustar el ancho de las barras
+    bar_width = 0.5
+
+    # Crear la gráfica de barras
+    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+
+    # Personalizar la apariencia de la gráfica
+    ax.set_xlabel('Opciones')
+    ax.set_ylabel('Frecuencia')
+    ax.set_title('Importancia de la razón por la cual trabaja aquí: "Puedo ayudar a organizar los equipos de trabajo"')
+
+    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    for i, rect in enumerate(bars):
+        height = rect.get_height()
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Descripción al lado derecho de la gráfica
+    description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 43, opción 2.\n\n'
+    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.\n\n'
+    description += '1) La menos importante\n2) Medianamente importante\n3) La más importante'
+    ax.text(1.05, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
+
+    # Ajustar automáticamente los parámetros de la figura
+    fig.tight_layout()
+
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'pregunta_43_opcion_2_chart.png')
+    fig.savefig(chart_path)
+
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'pregunta_43_opcion_2_chart.png')
+
+    return chart_url
 
 
 
@@ -1401,6 +1513,8 @@ def view_results(request):
     pregunta_8_chart_url = generate_pregunta_8_chart(request)
     pregunta_9_chart_url = generate_pregunta_9_chart(request)
     pregunta_10_chart_url = generate_pregunta_10_chart(request)
+    pregunta_43_opcion_1_chart_url = generate_pregunta_43_opcion_1_chart(request)
+    pregunta_43_opcion_2_chart_url = generate_pregunta_43_opcion_2_chart(request)
 
 
 
@@ -1427,5 +1541,7 @@ def view_results(request):
         'pregunta_8_chart_url': pregunta_8_chart_url,
         'pregunta_9_chart_url': pregunta_9_chart_url,
         'pregunta_10_chart_url': pregunta_10_chart_url,
+        'pregunta_43_opcion_1_chart_url': pregunta_43_opcion_1_chart_url,
+        'pregunta_43_opcion_2_chart_url': pregunta_43_opcion_2_chart_url,
     }
     return render(request, 'results.html', context)

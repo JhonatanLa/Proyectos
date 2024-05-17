@@ -20,8 +20,6 @@ import unicodedata
 
 
 
-
-
 def home(request):
     return render(request, 'base_generic.html')
 
@@ -1490,6 +1488,22 @@ def generate_pregunta_43_opcion_2_chart(request):
     chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'pregunta_43_opcion_2_chart.png')
 
     return chart_url
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -900,28 +900,59 @@ def generate_pregunta_1_chart(request):
     opciones = [item['pregunta_1'] for item in pregunta_1_data]
     frequencies = [item['count'] for item in pregunta_1_data]
 
-    # Calcular porcentajes
+    # Calcular el total de respuestas y los porcentajes
     total_responses = sum(frequencies)
-    percentages = [count / total_responses * 100 for count in frequencies]
+    percentages = [(count / total_responses * 100) if total_responses > 0 else 0 for count in frequencies]
 
-    # Crear una nueva figura
+    # Inicializar variables para las sumatorias
+    sumatoria_acuerdos = 0
+    sumatoria_desacuerdos = 0
+
+    # Calcular las sumatorias basadas en las categorías
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in ["Totalmente de acuerdo", "Medianamente de acuerdo"]:
+            sumatoria_acuerdos += count
+        elif opcion in ["Medianamente en desacuerdo", "Totalmente en desacuerdo"]:
+            sumatoria_desacuerdos += count
+
+    # Crear un diccionario con las categorías en el orden deseado
+    categorias_ordenadas = {
+        "Totalmente de acuerdo": 0,
+        "Medianamente de acuerdo": 0,
+        "Sumatoria acuerdos": sumatoria_acuerdos,
+        "Medianamente en desacuerdo": 0,
+        "Totalmente en desacuerdo": 0,
+        "Sumatoria de desacuerdos": sumatoria_desacuerdos
+    }
+
+    # Rellenar el diccionario con las frecuencias de las opciones obtenidas
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in categorias_ordenadas:
+            categorias_ordenadas[opcion] = count
+
+    # Extraer las opciones y frecuencias en el orden deseado
+    opciones_ordenadas = list(categorias_ordenadas.keys())
+    frequencies_ordenadas = list(categorias_ordenadas.values())
+    percentages_ordenadas = [(freq / total_responses * 100) if total_responses > 0 else 0 for freq in frequencies_ordenadas]
+
+    # Crear una nueva figura para la gráfica
     fig, ax = plt.subplots(figsize=(16, 6))
 
     # Ajustar el ancho de las barras
     bar_width = 0.5
 
-    # Crear la gráfica de barras
-    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+    # Crear la gráfica de barras con los datos en el orden deseado
+    bars = ax.bar(opciones_ordenadas, frequencies_ordenadas, width=bar_width, color='skyblue')
 
     # Personalizar la apariencia de la gráfica
     ax.set_xlabel('Opciones')
     ax.set_ylabel('Frecuencia')
-    ax.set_title('1. La normas que rigen la empresa admiten la expresión de la forma de ser de sus empleados.')
+    ax.set_title('1. Las normas que rigen la empresa admiten la expresión de la forma de ser de sus empleados.')
 
-    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    # Mostrar las frecuencias y porcentajes encima de las barras
     for i, rect in enumerate(bars):
         height = rect.get_height()
-        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages_ordenadas[i]),
                     xy=(rect.get_x() + rect.get_width() / 2, height),
                     xytext=(0, 3),  # Desplazamiento vertical del texto
                     textcoords="offset points",
@@ -929,7 +960,7 @@ def generate_pregunta_1_chart(request):
 
     # Descripción al lado derecho de la gráfica
     description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 1.\n\n'
-    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    description += 'Incluye sumatorias de respuestas en las categorías de acuerdo y desacuerdo.'
     ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
             va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
 
@@ -954,6 +985,7 @@ def generate_pregunta_1_chart(request):
 
 
 
+
 def generate_pregunta_2_chart(request):
     # Obtener los datos de la pregunta_2
     pregunta_2_data = PreguntasCerradas.objects.values('pregunta_2').annotate(count=Count('pregunta_2')).order_by('pregunta_2')
@@ -962,28 +994,59 @@ def generate_pregunta_2_chart(request):
     opciones = [item['pregunta_2'] for item in pregunta_2_data]
     frequencies = [item['count'] for item in pregunta_2_data]
 
-    # Calcular porcentajes
+    # Calcular el total de respuestas y los porcentajes
     total_responses = sum(frequencies)
-    percentages = [count / total_responses * 100 for count in frequencies]
+    percentages = [(count / total_responses * 100) if total_responses > 0 else 0 for count in frequencies]
 
-    # Crear una nueva figura
+    # Inicializar variables para las sumatorias
+    sumatoria_acuerdos = 0
+    sumatoria_desacuerdos = 0
+
+    # Calcular las sumatorias basadas en las categorías
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in ["Totalmente de acuerdo", "Medianamente de acuerdo"]:
+            sumatoria_acuerdos += count
+        elif opcion in ["Medianamente en desacuerdo", "Totalmente en desacuerdo"]:
+            sumatoria_desacuerdos += count
+
+    # Crear un diccionario con las categorías en el orden deseado
+    categorias_ordenadas = {
+        "Totalmente de acuerdo": 0,
+        "Medianamente de acuerdo": 0,
+        "Sumatoria acuerdos": sumatoria_acuerdos,
+        "Medianamente en desacuerdo": 0,
+        "Totalmente en desacuerdo": 0,
+        "Sumatoria de desacuerdos": sumatoria_desacuerdos
+    }
+
+    # Rellenar el diccionario con las frecuencias de las opciones obtenidas
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in categorias_ordenadas:
+            categorias_ordenadas[opcion] = count
+
+    # Extraer las opciones y frecuencias en el orden deseado
+    opciones_ordenadas = list(categorias_ordenadas.keys())
+    frequencies_ordenadas = list(categorias_ordenadas.values())
+    percentages_ordenadas = [(freq / total_responses * 100) if total_responses > 0 else 0 for freq in frequencies_ordenadas]
+
+    # Crear una nueva figura para la gráfica
     fig, ax = plt.subplots(figsize=(16, 6))
 
     # Ajustar el ancho de las barras
     bar_width = 0.5
 
-    # Crear la gráfica de barras
-    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+    # Crear la gráfica de barras con los datos en el orden deseado
+    bars = ax.bar(opciones_ordenadas, frequencies_ordenadas, width=bar_width, color='skyblue')
 
     # Personalizar la apariencia de la gráfica
     ax.set_xlabel('Opciones')
     ax.set_ylabel('Frecuencia')
     ax.set_title('2. Los empleados contribuyen con ideas en la toma de decisiones de la empresa')
 
-    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    # Mostrar las frecuencias y porcentajes encima de las barras
     for i, rect in enumerate(bars):
         height = rect.get_height()
-        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages_ordenadas[i]),
                     xy=(rect.get_x() + rect.get_width() / 2, height),
                     xytext=(0, 3),  # Desplazamiento vertical del texto
                     textcoords="offset points",
@@ -991,7 +1054,7 @@ def generate_pregunta_2_chart(request):
 
     # Descripción al lado derecho de la gráfica
     description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 2.\n\n'
-    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    description += 'Incluye sumatorias de respuestas en las categorías de acuerdo y desacuerdo.'
     ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
             va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
 
@@ -1014,6 +1077,7 @@ def generate_pregunta_2_chart(request):
 
 
 
+
 def generate_pregunta_3_chart(request):
     # Obtener los datos de la pregunta_3
     pregunta_3_data = PreguntasCerradas.objects.values('pregunta_3').annotate(count=Count('pregunta_3')).order_by('pregunta_3')
@@ -1022,28 +1086,59 @@ def generate_pregunta_3_chart(request):
     opciones = [item['pregunta_3'] for item in pregunta_3_data]
     frequencies = [item['count'] for item in pregunta_3_data]
 
-    # Calcular porcentajes
+    # Calcular el total de respuestas y los porcentajes
     total_responses = sum(frequencies)
-    percentages = [count / total_responses * 100 for count in frequencies]
+    percentages = [(count / total_responses * 100) if total_responses > 0 else 0 for count in frequencies]
 
-    # Crear una nueva figura
+    # Inicializar variables para las sumatorias
+    sumatoria_acuerdos = 0
+    sumatoria_desacuerdos = 0
+
+    # Calcular las sumatorias basadas en las categorías
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in ["Totalmente de acuerdo", "Medianamente de acuerdo"]:
+            sumatoria_acuerdos += count
+        elif opcion in ["Medianamente en desacuerdo", "Totalmente en desacuerdo"]:
+            sumatoria_desacuerdos += count
+
+    # Crear un diccionario con las categorías en el orden deseado
+    categorias_ordenadas = {
+        "Totalmente de acuerdo": 0,
+        "Medianamente de acuerdo": 0,
+        "Sumatoria acuerdos": sumatoria_acuerdos,
+        "Medianamente en desacuerdo": 0,
+        "Totalmente en desacuerdo": 0,
+        "Sumatoria de desacuerdos": sumatoria_desacuerdos
+    }
+
+    # Rellenar el diccionario con las frecuencias de las opciones obtenidas
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in categorias_ordenadas:
+            categorias_ordenadas[opcion] = count
+
+    # Extraer las opciones y frecuencias en el orden deseado
+    opciones_ordenadas = list(categorias_ordenadas.keys())
+    frequencies_ordenadas = list(categorias_ordenadas.values())
+    percentages_ordenadas = [(freq / total_responses * 100) if total_responses > 0 else 0 for freq in frequencies_ordenadas]
+
+    # Crear una nueva figura para la gráfica
     fig, ax = plt.subplots(figsize=(16, 6))
 
     # Ajustar el ancho de las barras
     bar_width = 0.5
 
-    # Crear la gráfica de barras
-    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+    # Crear la gráfica de barras con los datos en el orden deseado
+    bars = ax.bar(opciones_ordenadas, frequencies_ordenadas, width=bar_width, color='skyblue')
 
     # Personalizar la apariencia de la gráfica
     ax.set_xlabel('Opciones')
     ax.set_ylabel('Frecuencia')
-    ax.set_title('3. A usted le interesa participar en la toma de las decisiones de la empresa.')
+    ax.set_title('3. A usted le interesa participar en la toma de las decisiones de la empresa')
 
-    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    # Mostrar las frecuencias y porcentajes encima de las barras
     for i, rect in enumerate(bars):
         height = rect.get_height()
-        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages_ordenadas[i]),
                     xy=(rect.get_x() + rect.get_width() / 2, height),
                     xytext=(0, 3),  # Desplazamiento vertical del texto
                     textcoords="offset points",
@@ -1051,7 +1146,7 @@ def generate_pregunta_3_chart(request):
 
     # Descripción al lado derecho de la gráfica
     description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 3.\n\n'
-    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    description += 'Incluye sumatorias de respuestas en las categorías de acuerdo y desacuerdo.'
     ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
             va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
 
@@ -1074,6 +1169,7 @@ def generate_pregunta_3_chart(request):
 
 
 
+
 def generate_pregunta_4_chart(request):
     # Obtener los datos de la pregunta_4
     pregunta_4_data = PreguntasCerradas.objects.values('pregunta_4').annotate(count=Count('pregunta_4')).order_by('pregunta_4')
@@ -1082,28 +1178,59 @@ def generate_pregunta_4_chart(request):
     opciones = [item['pregunta_4'] for item in pregunta_4_data]
     frequencies = [item['count'] for item in pregunta_4_data]
 
-    # Calcular porcentajes
+    # Calcular el total de respuestas y los porcentajes
     total_responses = sum(frequencies)
-    percentages = [count / total_responses * 100 for count in frequencies]
+    percentages = [(count / total_responses * 100) if total_responses > 0 else 0 for count in frequencies]
 
-    # Crear una nueva figura
+    # Inicializar variables para las sumatorias
+    sumatoria_acuerdos = 0
+    sumatoria_desacuerdos = 0
+
+    # Calcular las sumatorias basadas en las categorías
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in ["Totalmente de acuerdo", "Medianamente de acuerdo"]:
+            sumatoria_acuerdos += count
+        elif opcion in ["Medianamente en desacuerdo", "Totalmente en desacuerdo"]:
+            sumatoria_desacuerdos += count
+
+    # Crear un diccionario con las categorías en el orden deseado
+    categorias_ordenadas = {
+        "Totalmente de acuerdo": 0,
+        "Medianamente de acuerdo": 0,
+        "Sumatoria acuerdos": sumatoria_acuerdos,
+        "Medianamente en desacuerdo": 0,
+        "Totalmente en desacuerdo": 0,
+        "Sumatoria de desacuerdos": sumatoria_desacuerdos
+    }
+
+    # Rellenar el diccionario con las frecuencias de las opciones obtenidas
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in categorias_ordenadas:
+            categorias_ordenadas[opcion] = count
+
+    # Extraer las opciones y frecuencias en el orden deseado
+    opciones_ordenadas = list(categorias_ordenadas.keys())
+    frequencies_ordenadas = list(categorias_ordenadas.values())
+    percentages_ordenadas = [(freq / total_responses * 100) if total_responses > 0 else 0 for freq in frequencies_ordenadas]
+
+    # Crear una nueva figura para la gráfica
     fig, ax = plt.subplots(figsize=(16, 6))
 
     # Ajustar el ancho de las barras
     bar_width = 0.5
 
-    # Crear la gráfica de barras
-    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+    # Crear la gráfica de barras con los datos en el orden deseado
+    bars = ax.bar(opciones_ordenadas, frequencies_ordenadas, width=bar_width, color='skyblue')
 
     # Personalizar la apariencia de la gráfica
     ax.set_xlabel('Opciones')
     ax.set_ylabel('Frecuencia')
     ax.set_title('4. En la empresa cuando se crea una norma, previamente las directivas hacen consultas con los empleados.')
 
-    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    # Mostrar las frecuencias y porcentajes encima de las barras
     for i, rect in enumerate(bars):
         height = rect.get_height()
-        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages_ordenadas[i]),
                     xy=(rect.get_x() + rect.get_width() / 2, height),
                     xytext=(0, 3),  # Desplazamiento vertical del texto
                     textcoords="offset points",
@@ -1111,7 +1238,7 @@ def generate_pregunta_4_chart(request):
 
     # Descripción al lado derecho de la gráfica
     description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 4.\n\n'
-    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    description += 'Incluye sumatorias de respuestas en las categorías de acuerdo y desacuerdo.'
     ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
             va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
 
@@ -1135,6 +1262,7 @@ def generate_pregunta_4_chart(request):
 
 
 
+
 def generate_pregunta_5_chart(request):
     # Obtener los datos de la pregunta_5
     pregunta_5_data = PreguntasCerradas.objects.values('pregunta_5').annotate(count=Count('pregunta_5')).order_by('pregunta_5')
@@ -1143,28 +1271,59 @@ def generate_pregunta_5_chart(request):
     opciones = [item['pregunta_5'] for item in pregunta_5_data]
     frequencies = [item['count'] for item in pregunta_5_data]
 
-    # Calcular porcentajes
+    # Calcular el total de respuestas y los porcentajes
     total_responses = sum(frequencies)
-    percentages = [count / total_responses * 100 for count in frequencies]
+    percentages = [(count / total_responses * 100) if total_responses > 0 else 0 for count in frequencies]
 
-    # Crear una nueva figura
+    # Inicializar variables para las sumatorias
+    sumatoria_acuerdos = 0
+    sumatoria_desacuerdos = 0
+
+    # Calcular las sumatorias basadas en las categorías
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in ["Totalmente de acuerdo", "Medianamente de acuerdo"]:
+            sumatoria_acuerdos += count
+        elif opcion in ["Medianamente en desacuerdo", "Totalmente en desacuerdo"]:
+            sumatoria_desacuerdos += count
+
+    # Crear un diccionario con las categorías en el orden deseado
+    categorias_ordenadas = {
+        "Totalmente de acuerdo": 0,
+        "Medianamente de acuerdo": 0,
+        "Sumatoria acuerdos": sumatoria_acuerdos,
+        "Medianamente en desacuerdo": 0,
+        "Totalmente en desacuerdo": 0,
+        "Sumatoria de desacuerdos": sumatoria_desacuerdos
+    }
+
+    # Rellenar el diccionario con las frecuencias de las opciones obtenidas
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in categorias_ordenadas:
+            categorias_ordenadas[opcion] = count
+
+    # Extraer las opciones y frecuencias en el orden deseado
+    opciones_ordenadas = list(categorias_ordenadas.keys())
+    frequencies_ordenadas = list(categorias_ordenadas.values())
+    percentages_ordenadas = [(freq / total_responses * 100) if total_responses > 0 else 0 for freq in frequencies_ordenadas]
+
+    # Crear una nueva figura para la gráfica
     fig, ax = plt.subplots(figsize=(16, 6))
 
     # Ajustar el ancho de las barras
     bar_width = 0.5
 
-    # Crear la gráfica de barras
-    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+    # Crear la gráfica de barras con los datos en el orden deseado
+    bars = ax.bar(opciones_ordenadas, frequencies_ordenadas, width=bar_width, color='skyblue')
 
     # Personalizar la apariencia de la gráfica
     ax.set_xlabel('Opciones')
     ax.set_ylabel('Frecuencia')
     ax.set_title('5. En la empresa a algunas personas les aplican las normas con bastante rigor mientras a otras les perdonan todo.')
 
-    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    # Mostrar las frecuencias y porcentajes encima de las barras
     for i, rect in enumerate(bars):
         height = rect.get_height()
-        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages_ordenadas[i]),
                     xy=(rect.get_x() + rect.get_width() / 2, height),
                     xytext=(0, 3),  # Desplazamiento vertical del texto
                     textcoords="offset points",
@@ -1172,7 +1331,7 @@ def generate_pregunta_5_chart(request):
 
     # Descripción al lado derecho de la gráfica
     description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 5.\n\n'
-    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    description += 'Incluye sumatorias de respuestas en las categorías de acuerdo y desacuerdo.'
     ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
             va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
 
@@ -1198,6 +1357,7 @@ def generate_pregunta_5_chart(request):
 
 
 
+
 def generate_pregunta_6_chart(request):
     # Obtener los datos de la pregunta_6
     pregunta_6_data = PreguntasCerradas.objects.values('pregunta_6').annotate(count=Count('pregunta_6')).order_by('pregunta_6')
@@ -1206,28 +1366,59 @@ def generate_pregunta_6_chart(request):
     opciones = [item['pregunta_6'] for item in pregunta_6_data]
     frequencies = [item['count'] for item in pregunta_6_data]
 
-    # Calcular porcentajes
+    # Calcular el total de respuestas y los porcentajes
     total_responses = sum(frequencies)
-    percentages = [count / total_responses * 100 for count in frequencies]
+    percentages = [(count / total_responses * 100) if total_responses > 0 else 0 for count in frequencies]
 
-    # Crear una nueva figura
+    # Inicializar variables para las sumatorias
+    sumatoria_acuerdos = 0
+    sumatoria_desacuerdos = 0
+
+    # Calcular las sumatorias basadas en las categorías
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in ["Totalmente de acuerdo", "Medianamente de acuerdo"]:
+            sumatoria_acuerdos += count
+        elif opcion in ["Medianamente en desacuerdo", "Totalmente en desacuerdo"]:
+            sumatoria_desacuerdos += count
+
+    # Crear un diccionario con las categorías en el orden deseado
+    categorias_ordenadas = {
+        "Totalmente de acuerdo": 0,
+        "Medianamente de acuerdo": 0,
+        "Sumatoria acuerdos": sumatoria_acuerdos,
+        "Medianamente en desacuerdo": 0,
+        "Totalmente en desacuerdo": 0,
+        "Sumatoria de desacuerdos": sumatoria_desacuerdos
+    }
+
+    # Rellenar el diccionario con las frecuencias de las opciones obtenidas
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in categorias_ordenadas:
+            categorias_ordenadas[opcion] = count
+
+    # Extraer las opciones y frecuencias en el orden deseado
+    opciones_ordenadas = list(categorias_ordenadas.keys())
+    frequencies_ordenadas = list(categorias_ordenadas.values())
+    percentages_ordenadas = [(freq / total_responses * 100) if total_responses > 0 else 0 for freq in frequencies_ordenadas]
+
+    # Crear una nueva figura para la gráfica
     fig, ax = plt.subplots(figsize=(16, 6))
 
     # Ajustar el ancho de las barras
     bar_width = 0.5
 
-    # Crear la gráfica de barras
-    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+    # Crear la gráfica de barras con los datos en el orden deseado
+    bars = ax.bar(opciones_ordenadas, frequencies_ordenadas, width=bar_width, color='skyblue')
 
     # Personalizar la apariencia de la gráfica
     ax.set_xlabel('Opciones')
     ax.set_ylabel('Frecuencia')
     ax.set_title('6. En general, la empresa está mejorando en relación a como era cuando usted ingresó como empleado.')
 
-    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    # Mostrar las frecuencias y porcentajes encima de las barras
     for i, rect in enumerate(bars):
         height = rect.get_height()
-        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages_ordenadas[i]),
                     xy=(rect.get_x() + rect.get_width() / 2, height),
                     xytext=(0, 3),  # Desplazamiento vertical del texto
                     textcoords="offset points",
@@ -1235,7 +1426,7 @@ def generate_pregunta_6_chart(request):
 
     # Descripción al lado derecho de la gráfica
     description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 6.\n\n'
-    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    description += 'Incluye sumatorias de respuestas en las categorías de acuerdo y desacuerdo.'
     ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
             va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
 
@@ -1259,6 +1450,7 @@ def generate_pregunta_6_chart(request):
 
 
 
+
 def generate_pregunta_7_chart(request):
     # Obtener los datos de la pregunta_7
     pregunta_7_data = PreguntasCerradas.objects.values('pregunta_7').annotate(count=Count('pregunta_7')).order_by('pregunta_7')
@@ -1267,28 +1459,59 @@ def generate_pregunta_7_chart(request):
     opciones = [item['pregunta_7'] for item in pregunta_7_data]
     frequencies = [item['count'] for item in pregunta_7_data]
 
-    # Calcular porcentajes
+    # Calcular el total de respuestas y los porcentajes
     total_responses = sum(frequencies)
-    percentages = [count / total_responses * 100 for count in frequencies]
+    percentages = [(count / total_responses * 100) if total_responses > 0 else 0 for count in frequencies]
 
-    # Crear una nueva figura
+    # Inicializar variables para las sumatorias
+    sumatoria_acuerdos = 0
+    sumatoria_desacuerdos = 0
+
+    # Calcular las sumatorias basadas en las categorías
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in ["Totalmente de acuerdo", "Medianamente de acuerdo"]:
+            sumatoria_acuerdos += count
+        elif opcion in ["Medianamente en desacuerdo", "Totalmente en desacuerdo"]:
+            sumatoria_desacuerdos += count
+
+    # Crear un diccionario con las categorías en el orden deseado
+    categorias_ordenadas = {
+        "Totalmente de acuerdo": 0,
+        "Medianamente de acuerdo": 0,
+        "Sumatoria acuerdos": sumatoria_acuerdos,
+        "Medianamente en desacuerdo": 0,
+        "Totalmente en desacuerdo": 0,
+        "Sumatoria de desacuerdos": sumatoria_desacuerdos
+    }
+
+    # Rellenar el diccionario con las frecuencias de las opciones obtenidas
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in categorias_ordenadas:
+            categorias_ordenadas[opcion] = count
+
+    # Extraer las opciones y frecuencias en el orden deseado
+    opciones_ordenadas = list(categorias_ordenadas.keys())
+    frequencies_ordenadas = list(categorias_ordenadas.values())
+    percentages_ordenadas = [(freq / total_responses * 100) if total_responses > 0 else 0 for freq in frequencies_ordenadas]
+
+    # Crear una nueva figura para la gráfica
     fig, ax = plt.subplots(figsize=(16, 6))
 
     # Ajustar el ancho de las barras
     bar_width = 0.5
 
-    # Crear la gráfica de barras
-    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+    # Crear la gráfica de barras con los datos en el orden deseado
+    bars = ax.bar(opciones_ordenadas, frequencies_ordenadas, width=bar_width, color='skyblue')
 
     # Personalizar la apariencia de la gráfica
     ax.set_xlabel('Opciones')
     ax.set_ylabel('Frecuencia')
     ax.set_title('7. En relación con el día de su ingreso como empleado, usted nota mejoría en el desempeño de los empleados de la empresa.')
 
-    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    # Mostrar las frecuencias y porcentajes encima de las barras
     for i, rect in enumerate(bars):
         height = rect.get_height()
-        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages_ordenadas[i]),
                     xy=(rect.get_x() + rect.get_width() / 2, height),
                     xytext=(0, 3),  # Desplazamiento vertical del texto
                     textcoords="offset points",
@@ -1296,7 +1519,7 @@ def generate_pregunta_7_chart(request):
 
     # Descripción al lado derecho de la gráfica
     description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 7.\n\n'
-    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    description += 'Incluye sumatorias de respuestas en las categorías de acuerdo y desacuerdo para identificar tendencias generales.'
     ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
             va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
 
@@ -1318,7 +1541,8 @@ def generate_pregunta_7_chart(request):
 
 
 
-def generate_pregunta_8_chart(request):
+
+def generate_pregunta_8_chart(request): 
     # Obtener los datos de la pregunta_8
     pregunta_8_data = PreguntasCerradas.objects.values('pregunta_8').annotate(count=Count('pregunta_8')).order_by('pregunta_8')
 
@@ -1330,6 +1554,37 @@ def generate_pregunta_8_chart(request):
     total_responses = sum(frequencies)
     percentages = [count / total_responses * 100 for count in frequencies]
 
+    # Inicializar variables para las sumatorias
+    sumatoria_acuerdos = 0
+    sumatoria_desacuerdos = 0
+
+    # Calcular las sumatorias basadas en las categorías
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in ["Totalmente de acuerdo", "Medianamente de acuerdo"]:
+            sumatoria_acuerdos += count
+        elif opcion in ["Medianamente en desacuerdo", "Totalmente en desacuerdo"]:
+            sumatoria_desacuerdos += count
+
+    # Crear un diccionario con todas las categorías en el orden deseado
+    categorias_ordenadas = {
+        "Totalmente de acuerdo": 0,
+        "Medianamente de acuerdo": 0,
+        "Sumatoria acuerdos": sumatoria_acuerdos,
+        "Medianamente en desacuerdo": 0,
+        "Totalmente en desacuerdo": 0,
+        "Sumatoria de desacuerdos": sumatoria_desacuerdos
+    }
+
+    # Rellenar el diccionario con las frecuencias de las opciones
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in categorias_ordenadas:
+            categorias_ordenadas[opcion] = count
+
+    # Extraer las opciones y frecuencias en el orden deseado
+    opciones_ordenadas = list(categorias_ordenadas.keys())
+    frequencies_ordenadas = list(categorias_ordenadas.values())
+    percentages_ordenadas = [(freq / total_responses * 100) if total_responses > 0 else 0 for freq in frequencies_ordenadas]
+
     # Crear una nueva figura
     fig, ax = plt.subplots(figsize=(16, 6))
 
@@ -1337,7 +1592,7 @@ def generate_pregunta_8_chart(request):
     bar_width = 0.5
 
     # Crear la gráfica de barras
-    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+    bars = ax.bar(opciones_ordenadas, frequencies_ordenadas, width=bar_width, color='skyblue')
 
     # Personalizar la apariencia de la gráfica
     ax.set_xlabel('Opciones')
@@ -1347,7 +1602,7 @@ def generate_pregunta_8_chart(request):
     # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
     for i, rect in enumerate(bars):
         height = rect.get_height()
-        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages_ordenadas[i]),
                     xy=(rect.get_x() + rect.get_width() / 2, height),
                     xytext=(0, 3),  # Desplazamiento vertical del texto
                     textcoords="offset points",
@@ -1355,7 +1610,7 @@ def generate_pregunta_8_chart(request):
 
     # Descripción al lado derecho de la gráfica
     description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 8.\n\n'
-    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    description += 'Incluye sumatorias de respuestas en las categorías de acuerdo y desacuerdo.'
     ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
             va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
 
@@ -1382,6 +1637,7 @@ def generate_pregunta_8_chart(request):
 
 
 
+
 def generate_pregunta_9_chart(request):
     # Obtener los datos de la pregunta_9
     pregunta_9_data = PreguntasCerradas.objects.values('pregunta_9').annotate(count=Count('pregunta_9')).order_by('pregunta_9')
@@ -1390,28 +1646,59 @@ def generate_pregunta_9_chart(request):
     opciones = [item['pregunta_9'] for item in pregunta_9_data]
     frequencies = [item['count'] for item in pregunta_9_data]
 
-    # Calcular porcentajes
+    # Calcular el total de respuestas y los porcentajes
     total_responses = sum(frequencies)
-    percentages = [count / total_responses * 100 for count in frequencies]
+    percentages = [(count / total_responses * 100) if total_responses > 0 else 0 for count in frequencies]
 
-    # Crear una nueva figura
+    # Inicializar variables para las sumatorias
+    sumatoria_acuerdos = 0
+    sumatoria_desacuerdos = 0
+
+    # Calcular las sumatorias basadas en las categorías
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in ["Totalmente de acuerdo", "Medianamente de acuerdo"]:
+            sumatoria_acuerdos += count
+        elif opcion in ["Medianamente en desacuerdo", "Totalmente en desacuerdo"]:
+            sumatoria_desacuerdos += count
+
+    # Crear un diccionario con las categorías en el orden deseado
+    categorias_ordenadas = {
+        "Totalmente de acuerdo": 0,
+        "Medianamente de acuerdo": 0,
+        "Sumatoria acuerdos": sumatoria_acuerdos,
+        "Medianamente en desacuerdo": 0,
+        "Totalmente en desacuerdo": 0,
+        "Sumatoria de desacuerdos": sumatoria_desacuerdos
+    }
+
+    # Rellenar el diccionario con las frecuencias de las opciones obtenidas
+    for opcion, count in zip(opciones, frequencies):
+        if opcion in categorias_ordenadas:
+            categorias_ordenadas[opcion] = count
+
+    # Extraer las opciones y frecuencias en el orden deseado
+    opciones_ordenadas = list(categorias_ordenadas.keys())
+    frequencies_ordenadas = list(categorias_ordenadas.values())
+    percentages_ordenadas = [(freq / total_responses * 100) if total_responses > 0 else 0 for freq in frequencies_ordenadas]
+
+    # Crear una nueva figura para la gráfica
     fig, ax = plt.subplots(figsize=(16, 6))
 
     # Ajustar el ancho de las barras
     bar_width = 0.5
 
-    # Crear la gráfica de barras
-    bars = ax.bar(opciones, frequencies, width=bar_width, color='skyblue')
+    # Crear la gráfica de barras con los datos en el orden deseado
+    bars = ax.bar(opciones_ordenadas, frequencies_ordenadas, width=bar_width, color='skyblue')
 
     # Personalizar la apariencia de la gráfica
     ax.set_xlabel('Opciones')
     ax.set_ylabel('Frecuencia')
     ax.set_title('9. La comunicación de trabajo, desde usted hacia su jefe inmediato es fácil.')
 
-    # Mostrar la cantidad exacta de veces que se ha respondido cada opción en el eje y y los porcentajes
+    # Mostrar las frecuencias y porcentajes encima de las barras
     for i, rect in enumerate(bars):
         height = rect.get_height()
-        ax.annotate('{} ({:.1f}%)'.format(height, percentages[i]),
+        ax.annotate('{} ({:.1f}%)'.format(height, percentages_ordenadas[i]),
                     xy=(rect.get_x() + rect.get_width() / 2, height),
                     xytext=(0, 3),  # Desplazamiento vertical del texto
                     textcoords="offset points",
@@ -1419,7 +1706,7 @@ def generate_pregunta_9_chart(request):
 
     # Descripción al lado derecho de la gráfica
     description = 'Esta gráfica muestra la distribución de respuestas para la pregunta 9.\n\n'
-    description += 'Los porcentajes indican la proporción de respuestas en relación con el total de respuestas.'
+    description += 'Incluye sumatorias de respuestas en las categorías de acuerdo y desacuerdo para identificar tendencias generales sobre la comunicación con el jefe inmediato.'
     ax.text(1.2, 0.5, description, transform=ax.transAxes, fontsize=12,
             va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=20))
 
@@ -1436,6 +1723,7 @@ def generate_pregunta_9_chart(request):
     chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'pregunta_9_chart.png')
 
     return chart_url
+
 
 
 
@@ -4330,6 +4618,96 @@ def generate_pregunta_44_opcion_4_chart(request):
 
 
 
+def generate_pregunta_44_chart(request):
+    # Definir las categorías y los niveles de influencia
+    categorias = ["Directivas", "Empleados", "Factores externos a la entidad"]
+    niveles_influencia = ["Menor influencia", "Mediana influencia", "Mayor influencia"]
+
+    # Inicialización de conteos de influencias para cada categoría
+    conteos = {
+        "Directivas": [0, 0, 0],  # [Menor influencia, Mediana influencia, Mayor influencia]
+        "Empleados": [0, 0, 0],
+        "Factores externos a la entidad": [0, 0, 0]
+    }
+
+    # Obtener los datos y contar respuestas por nivel de influencia para cada categoría
+    datos_opciones = {
+        "Directivas": "pregunta_44_opcion_1",
+        "Empleados": "pregunta_44_opcion_2",
+        "Factores externos a la entidad": "pregunta_44_opcion_3"
+    }
+
+    for categoria, campo in datos_opciones.items():
+        datos = PreguntaImportancia.objects.values(campo).annotate(count=Count(campo))
+        
+        for item in datos:
+            valor = item[campo]
+            if valor in [1, 2, 3]:  # Mapear 1 -> Menor, 2 -> Mediana, 3 -> Mayor
+                conteos[categoria][valor - 1] = item['count']
+
+    # Calcular porcentajes y conteos para cada nivel de influencia
+    porcentajes = {categoria: [] for categoria in categorias}
+    conteos_totales = {categoria: [] for categoria in categorias}
+
+    for categoria in categorias:
+        total_respuestas = sum(conteos[categoria])
+        for idx in range(3):
+            porcentaje = (conteos[categoria][idx] / total_respuestas * 100) if total_respuestas > 0 else 0
+            porcentajes[categoria].append(porcentaje)
+            conteos_totales[categoria].append(conteos[categoria][idx])
+
+    # Preparar los datos para la gráfica
+    menor_influencia = [porcentajes["Directivas"][0], porcentajes["Empleados"][0], porcentajes["Factores externos a la entidad"][0]]
+    mediana_influencia = [porcentajes["Directivas"][1], porcentajes["Empleados"][1], porcentajes["Factores externos a la entidad"][1]]
+    mayor_influencia = [porcentajes["Directivas"][2], porcentajes["Empleados"][2], porcentajes["Factores externos a la entidad"][2]]
+
+    menor_conteo = [conteos_totales["Directivas"][0], conteos_totales["Empleados"][0], conteos_totales["Factores externos a la entidad"][0]]
+    mediana_conteo = [conteos_totales["Directivas"][1], conteos_totales["Empleados"][1], conteos_totales["Factores externos a la entidad"][1]]
+    mayor_conteo = [conteos_totales["Directivas"][2], conteos_totales["Empleados"][2], conteos_totales["Factores externos a la entidad"][2]]
+
+    # Crear el gráfico de barras
+    fig, ax = plt.subplots(figsize=(10, 6))
+    bar_width = 0.2
+    x = np.arange(len(categorias))  # Posiciones de las categorías principales
+
+    # Graficar barras para cada nivel de influencia dentro de cada localización
+    bars_menor = ax.bar(x - bar_width, menor_influencia, width=bar_width, color='#1f77b4', label='Menor influencia')
+    bars_mediana = ax.bar(x, mediana_influencia, width=bar_width, color='#ff7f0e', label='Mediana influencia')
+    bars_mayor = ax.bar(x + bar_width, mayor_influencia, width=bar_width, color='#7f7f7f', label='Mayor influencia')
+
+    # Etiquetas y título
+    ax.set_xlabel('Localización')
+    ax.set_ylabel('Porcentaje (%)')
+    ax.set_title('Distribución de influencia según la localización del poder')
+    ax.set_xticks(x)
+    ax.set_xticklabels(categorias)
+    ax.legend(title='Nivel de Influencia')
+
+    # Anotaciones para porcentaje y conteo en cada barra
+    for bars, counts, percentages in zip([bars_menor, bars_mediana, bars_mayor], [menor_conteo, mediana_conteo, mayor_conteo], [menor_influencia, mediana_influencia, mayor_influencia]):
+        for bar, count, percentage in zip(bars, counts, percentages):
+            height = bar.get_height()
+            if height > 0:
+                ax.annotate(f'{percentage:.2f}%\n({count})',
+                            xy=(bar.get_x() + bar.get_width() / 2, height),
+                            xytext=(0, 3), textcoords="offset points",
+                            ha='center', va='bottom')
+
+    fig.tight_layout()
+
+    # Guardar la imagen
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'pregunta_44_chart.png')
+    fig.savefig(chart_path)
+
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'pregunta_44_chart.png')
+    return chart_url
+
+
+
+
+
 
 
 
@@ -5022,6 +5400,107 @@ def generate_pregunta_51_chart(request):
 
 
 
+#Postulacion frente a premisas preguntas 52 a 61
+# Función para obtener datos de las preguntas 52 a 61
+def generar_tabla_liderazgo(request):
+    """
+    Obtiene los datos desde el modelo, los anonimiza, calcula frecuencias y genera una tabla de resultados.
+    Retorna la URL de la imagen generada.
+    """
+
+    # **Paso 1: Obtener los datos desde el modelo**
+    respuestas = PreguntaAbiertaCompaneros.objects.filter(
+        fiesta_integracion__isnull=False, 
+        defensa_intereses__isnull=False, 
+        representante_directivas__isnull=False, 
+        organizador_equipo_deportivo__isnull=False,
+        organizador_equipos_trabajo__isnull=False,
+        divulgacion_hechos__isnull=False,
+        confianza_secreto__isnull=False,
+        resolver_problemas__isnull=False,
+        enseñanza_trabajo__isnull=False,
+        lider_funcionario__isnull=False
+    ).values(
+        'fiesta_integracion', 'defensa_intereses', 'representante_directivas', 
+        'organizador_equipo_deportivo', 'organizador_equipos_trabajo',
+        'divulgacion_hechos', 'confianza_secreto', 'resolver_problemas', 
+        'enseñanza_trabajo', 'lider_funcionario'
+    )
+
+    # Convertir a DataFrame de pandas
+    df = pd.DataFrame(respuestas)
+
+    # Verificar si hay datos disponibles
+    if df.empty:
+        print("No se encontraron datos.")
+        return None
+
+    print("Datos obtenidos del modelo:", df)
+
+    # **Paso 2: Calcular frecuencias y porcentajes** para cada columna (Pregunta)
+    porcentajes_dict = {}
+    for col in df.columns:
+        frecuencias = df[col].value_counts()
+        total = frecuencias.sum()
+        porcentajes = (frecuencias / total * 100).round(2)
+        porcentajes_dict[col] = pd.DataFrame({
+            'Nombre': frecuencias.index,
+            'Porcentaje': porcentajes.values
+        })
+
+    print("Porcentajes calculados:", porcentajes_dict)
+
+    # **Paso 3: Crear y guardar la tabla usando pandas y matplotlib**
+    # Crear un DataFrame para la tabla final
+    tabla_final = pd.DataFrame()
+
+    # Iterar sobre las columnas y construir los datos para la tabla
+    for col in porcentajes_dict:
+        df_col = porcentajes_dict[col]
+        df_col.columns = [f"{col}_Nombre", f"{col}_Porcentaje"]
+        tabla_final = pd.concat([tabla_final, df_col], axis=1)
+
+    print(type(tabla_final))
+
+    # Crear la figura y el eje
+    fig, ax = plt.subplots(figsize=(16, 8))
+    ax.axis('off')  # Desactivamos los ejes para mostrar solo la tabla
+
+    # Dibujar la tabla usando pandas.plotting.table
+    from pandas.plotting import table
+    tabla = table(ax, tabla_final, loc='center', cellLoc='center', colWidths=[0.1] * len(tabla_final.columns))
+    tabla.auto_set_font_size(False)
+    tabla.set_fontsize(12)
+    tabla.scale(1.2, 1.2)
+
+    # **Paso 4: Guardar la imagen en la carpeta media/charts**
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'tabla_liderazgo.png')
+    fig.savefig(chart_path, bbox_inches='tight', dpi=300)
+
+    # Retornar la URL de la imagen generada
+    table_url = os.path.join(settings.MEDIA_URL, 'charts', 'tabla_liderazgo.png')
+    return table_url
+
+
+
+
+#Sintesis
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -5087,6 +5566,7 @@ def view_results(request):
     pregunta_44_opcion_2_chart_url = generate_pregunta_44_opcion_2_chart(request)
     pregunta_44_opcion_3_chart_url = generate_pregunta_44_opcion_3_chart(request)
     pregunta_44_opcion_4_chart_url = generate_pregunta_44_opcion_4_chart(request)
+    pregunta_44_chart_url = generate_pregunta_44_chart(request)
     pregunta_45_chart_url = generate_pregunta_45_chart(request)
     pregunta_46_chart_url = generate_pregunta_46_chart(request)
     pregunta_47_chart_url = generate_pregunta_47_chart(request)
@@ -5094,7 +5574,7 @@ def view_results(request):
     pregunta_49_chart_url = generate_pregunta_49_chart(request)
     pregunta_50_chart_url = generate_pregunta_50_chart(request)
     pregunta_51_chart_url = generate_pregunta_51_chart(request)
-
+    preguntas_52_a_61_table_url = generar_tabla_liderazgo(request)
 
 
 
@@ -5161,6 +5641,7 @@ def view_results(request):
         'pregunta_44_opcion_2_chart_url': pregunta_44_opcion_2_chart_url,
         'pregunta_44_opcion_3_chart_url': pregunta_44_opcion_3_chart_url,
         'pregunta_44_opcion_4_chart_url': pregunta_44_opcion_4_chart_url,
+        'pregunta_44_chart_url': pregunta_44_chart_url,
         'pregunta_45_chart_url': pregunta_45_chart_url,
         'pregunta_46_chart_url': pregunta_46_chart_url,
         'pregunta_47_chart_url': pregunta_47_chart_url,
@@ -5168,5 +5649,6 @@ def view_results(request):
         'pregunta_49_chart_url': pregunta_49_chart_url,
         'pregunta_50_chart_url': pregunta_50_chart_url,
         'pregunta_51_chart_url': pregunta_51_chart_url,
+        'preguntas_52_a_61_table_url' : preguntas_52_a_61_table_url,
     }
     return render(request, 'results.html', context)

@@ -10,4 +10,5 @@ urlpatterns = [
     path('view-results/', views.view_results, name='view_results'),
     path('delete_data/', views.delete_data, name='delete_data'),
     path('base_generic/', views.base_generic, name='base_generic'),
+    path('export_word/', views.export_word, name='export_word'),
 ]  + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

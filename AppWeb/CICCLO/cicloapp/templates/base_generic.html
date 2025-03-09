@@ -47,6 +47,11 @@
         {% csrf_token %}
         <button type="submit" class="btn btn-danger">Vaciar Base de Datos</button>
       </form>
+      <!-- Botón para generar el documento Word -->
+      <form action="{% url 'export_word' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Generar Documento Word</button>
+      </form>
     </nav>
   </header>
   <main role="main">

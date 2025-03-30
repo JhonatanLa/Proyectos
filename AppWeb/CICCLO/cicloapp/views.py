@@ -77,6 +77,7 @@ column_mappingk = {
     "Nombre de usuario": "nombre_usuario",
     "Edad": "edad",
     "Género": "genero",
+    "Mencione cuál es su cargo actual": "cargo_actual",
     "Mencione en qué área de la empresa se desempeña actualmente": "area_empresa",
     "Indique su antigüedad dentro de la empresa": "antiguedad_empresa",
     "1. La normas que rigen la empresa admiten la expresión de la forma de ser de sus empleados.": "pregunta_1",
@@ -157,7 +158,7 @@ column_mappingk = {
     "59. A quién dentro de la empresa elegiría para resolver problemas entre compañeros de trabajo.": "pregunta_59",
     "60. A cuál de sus compañeros elegiría para que le enseñara a mejorar la forma de hacer su trabajo.": "pregunta_60",
     "61. Mencione a un funcionario de la empresa que según usted tiene rasgos de líder.": "pregunta_61",
-    "62. Coloque 3 en lo que su jefe hace con más frecuencia y 1 en lo que casi nunca hace: (Primero leerle las 3 opciones completas. Y después leérselas una por una, para que las ordene). [Que los subalternos se sientan bien en sus sitios de trabajo aunque no": "pregunta_62_opcion_1",
+    "62. Coloque 3 en lo que su jefe hace con más frecuencia y 1 en lo que casi nunca hace: (Primero leerle las 3 opciones completas. Y después leérselas una por una, para que las ordene). [Que los subalternos se sientan bien en sus sitios de trabajo aunque no hagan bien sus tareas]": "pregunta_62_opcion_1",
     "62. Coloque 3 en lo que su jefe hace con más frecuencia y 1 en lo que casi nunca hace: (Primero leerle las 3 opciones completas. Y después leérselas una por una, para que las ordene). [Que las tareas se hagan bien y que los empleados estén bien]": "pregunta_62_opcion_2",
     "62. Coloque 3 en lo que su jefe hace con más frecuencia y 1 en lo que casi nunca hace: (Primero leerle las 3 opciones completas. Y después leérselas una por una, para que las ordene). [Que las tareas se hagan bien aunque los empleados estén mal]": "pregunta_62_opcion_3",
     "Puede escribir algunos comentarios adicionales si lo desea.": "comentarios",
@@ -168,6 +169,7 @@ column_mapping = [
     "nombre_usuario",
     "edad",
     "genero",
+    "cargo_actual",
     "area_empresa",
     "antiguedad_empresa",
     "pregunta_1",
@@ -275,6 +277,7 @@ def upload_file(request):
                     nombre_usuario=row['nombre_usuario'],
                     edad=row['edad'],
                     genero=row['genero'],
+                    cargo_actual=row['cargo_actual'],
                     area_empresa=row['area_empresa'],
                     antiguedad_empresa=row['antiguedad_empresa']
                 )
@@ -752,33 +755,51 @@ def generate_gender_bar_chart(request):
 
 
 
+def generate_cargo_actual_chart(request):
+    import os
+    import unicodedata
+    from collections import Counter
+    import matplotlib.pyplot as plt
+    from django.conf import settings
+    from cicloapp.models import DatosDemograficos
 
+    # Función para normalizar el texto: elimina espacios, acentos y convierte a mayúsculas
+    def normalize_text(text):
+        # Eliminar espacios al inicio y final 
+        text = text.strip()
+        # Eliminar acentos (normalización Unicode)
+        text = unicodedata.normalize('NFKD', text).encode('ASCII', 'ignore').decode('utf-8')
+        # Convertir a mayúsculas
+        return text.upper()
 
-def generate_area_empresa_chart(request):
-    # Obtener los datos de la columna "area_empresa"
-    area_empresa_data = DatosDemograficos.objects.values('area_empresa').annotate(count=Count('area_empresa')).order_by('area_empresa')
+    # Obtener los datos sin agrupar de la columna "cargo_actual"
+    raw_cargos = DatosDemograficos.objects.values_list('cargo_actual', flat=True)
+    # Normalizar cada valor y filtrar registros vacíos
+    normalized_cargos = [normalize_text(cargo) for cargo in raw_cargos if cargo]
 
-    # Normalizar las áreas de empresa y sus frecuencias
-    areas_empresa = [item['area_empresa'] for item in area_empresa_data]
-    frequencies = [item['count'] for item in area_empresa_data]
+    # Recalcular las frecuencias utilizando Counter
+    counts = Counter(normalized_cargos)
+    # Ordenar los datos alfabéticamente por la categoría
+    cargos_actuales = sorted(counts.keys())
+    frequencies = [counts[cargo] for cargo in cargos_actuales]
 
-    # Crear una nueva figura
-    fig, ax = plt.subplots(figsize=(12, 6))
+    # Crear una nueva figura para la gráfica
+    fig, ax = plt.subplots(figsize=(16, 6))
 
     # Crear la gráfica de barras
-    bars = ax.bar(areas_empresa, frequencies, color='skyblue')
+    bars = ax.bar(cargos_actuales, frequencies, color='skyblue')
 
-    # Personalizar la apariencia de la gráfica
-    ax.set_xlabel('Área de Empresa')
-    ax.set_ylabel('Frecuencia')
-    ax.set_title('Distribución de Áreas de Empresa')
+    # Personalizar la gráfica
+    ax.set_xlabel('CARGO ACTUAL')
+    ax.set_ylabel('FRECUENCIA')
+    ax.set_title('DISTRIBUCIÓN DE CARGOS ACTUALES')
 
     # Rotar los nombres de las barras y ajustar el espaciado
-    ax.set_xticks(range(len(areas_empresa)))  # Establecer las posiciones de las barras como marcas en el eje x
-    ax.set_xticklabels(areas_empresa, rotation=45, ha='right')  # Rotar los nombres de las barras
+    ax.set_xticks(range(len(cargos_actuales)))
+    ax.set_xticklabels(cargos_actuales, rotation=45, ha='right')
 
-    # Mostrar la cantidad exacta de veces que se repite cada área de empresa en el eje y
-    for i, rect in enumerate(bars):
+    # Mostrar la cantidad exacta de ocurrencias sobre cada barra
+    for rect in bars:
         height = rect.get_height()
         ax.annotate('{}'.format(height),
                     xy=(rect.get_x() + rect.get_width() / 2, height),
@@ -786,7 +807,89 @@ def generate_area_empresa_chart(request):
                     textcoords="offset points",
                     ha='center', va='bottom')
 
-    # Descripción al lado derecho de la gráfica (horizontal)
+    # Añadir una descripción al lado derecho de la gráfica
+    description = 'Esta gráfica muestra la distribución de cargos actuales con la frecuencia exacta de cada cargo'
+    ax.text(1.02, 0.5, description, transform=ax.transAxes, fontsize=12,
+            va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=10))
+
+    # Ajustar automáticamente los parámetros de la figura
+    fig.tight_layout()
+
+    # Guardar la imagen en un directorio
+    chart_dir = os.path.join(settings.BASE_DIR, 'media', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'cargo_actual_chart.png')
+    fig.savefig(chart_path)
+    plt.close(fig)  # Cierra la figura y libera memoria
+
+    # Obtener la URL de la imagen
+    chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'cargo_actual_chart.png')
+
+    return chart_url
+
+
+
+
+
+
+
+
+
+
+
+def generate_area_empresa_chart(request):
+    import os
+    import unicodedata
+    from collections import Counter
+    import matplotlib.pyplot as plt
+    from django.conf import settings
+    from cicloapp.models import DatosDemograficos
+
+    # Función para normalizar el texto: elimina espacios, acentos y convierte a mayúsculas
+    def normalize_text(text):
+        # Eliminar espacios al inicio y final 
+        text = text.strip()
+        # Eliminar acentos (normalización Unicode)
+        text = unicodedata.normalize('NFKD', text).encode('ASCII', 'ignore').decode('utf-8')
+        # Convertir a mayúsculas
+        return text.upper()
+
+    # Obtener los datos sin agrupar de la columna "area_empresa"
+    raw_areas = DatosDemograficos.objects.values_list('area_empresa', flat=True)
+    # Normalizar cada valor y filtrar registros vacíos
+    normalized_areas = [normalize_text(area) for area in raw_areas if area]
+
+    # Recalcular las frecuencias utilizando Counter
+    counts = Counter(normalized_areas)
+    # Ordenar los datos alfabéticamente por la categoría
+    areas_empresa = sorted(counts.keys())
+    frequencies = [counts[area] for area in areas_empresa]
+
+    # Crear una nueva figura para la gráfica
+    fig, ax = plt.subplots(figsize=(16, 6))
+
+    # Crear la gráfica de barras
+    bars = ax.bar(areas_empresa, frequencies, color='skyblue')
+
+    # Personalizar la gráfica
+    ax.set_xlabel('ÁREA DE EMPRESA')
+    ax.set_ylabel('FRECUENCIA')
+    ax.set_title('DISTRIBUCIÓN DE ÁREAS DE EMPRESA')
+
+    # Rotar los nombres de las barras y ajustar el espaciado
+    ax.set_xticks(range(len(areas_empresa)))
+    ax.set_xticklabels(areas_empresa, rotation=45, ha='right')
+
+    # Mostrar la cantidad exacta de ocurrencias sobre cada barra
+    for rect in bars:
+        height = rect.get_height()
+        ax.annotate('{}'.format(height),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+    # Añadir una descripción al lado derecho de la gráfica
     description = 'Esta gráfica muestra la distribución de áreas de empresa con la frecuencia exacta de cada área'
     ax.text(1.02, 0.5, description, transform=ax.transAxes, fontsize=12,
             va='center', ha='left', wrap=True, bbox=dict(facecolor='none', edgecolor='black', pad=10))
@@ -814,6 +917,8 @@ def generate_area_empresa_chart(request):
 
 
 
+
+
 def generate_antiguedad_empresa_chart(request):
     # Obtener los datos de la columna "antiguedad_empresa"
     antiguedad_empresa_data = DatosDemograficos.objects.values('antiguedad_empresa').annotate(count=Count('antiguedad_empresa')).order_by('antiguedad_empresa')
@@ -823,7 +928,7 @@ def generate_antiguedad_empresa_chart(request):
     frequencies = [item['count'] for item in antiguedad_empresa_data]
 
     # Crear una nueva figura
-    fig, ax = plt.subplots(figsize=(12, 6))
+    fig, ax = plt.subplots(figsize=(16, 6))
 
     # Crear la gráfica de barras
     bars = ax.bar(antiguedades_empresa, frequencies, color='skyblue')
@@ -858,6 +963,17 @@ def generate_antiguedad_empresa_chart(request):
     chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'antiguedad_empresa_chart.png')
 
     return chart_url
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1012,7 +1128,7 @@ def generate_pregunta_1_chart(request):
         height = rect.get_height()
         ax.annotate('{} ({:.1f}%)'.format(height, percentages_ordenadas[i]),
                     xy=(rect.get_x() + rect.get_width() / 2, height),
-                    xytext=(0, 3),  # Desplazamiento vertical del texto
+                    xytext=(0, 4),  # Desplazamiento vertical del texto
                     textcoords="offset points",
                     ha='center', va='bottom')
 
@@ -6317,11 +6433,14 @@ def procesar_respuestas3(request):
     texto_respuestas = '|'.join(respuestas)
 
 # Definimos el prompt
-    prompt = ('genera 10 categorias, siempre 10, basadas en los textos suministrados teniendo en cuenta que los titulos de las categorias deben estar relacionados a lo que es una organizacion y el contexto que es:'
-              'situaciones, anécdotas, historias internas o algo típico, que refleje lo que distingue la cultura de esta organización frente a las que se le parecen. Algo que permita decir: "esto solo pasa aquí".'
-              'usa todos los textos exceptuando los textos que solo dicen "Ninguna, .., N. A, ...,", por nada los vayas a usar para las categorias.'
-              'haz un conteo de todos los textos, ten en cuenta que estan separados por "|", ame un conteo y un porcentaje para cada categoria.'
-              'los datos siempre seran entregados en el siguiente formato, como si fuera una tabla: | Categoria | Conteo | Porcentaje | , Siempre se va a usar ese formato, siempre.')
+    prompt = (
+        "Genera 10 categorías, siempre 10, basadas en los textos suministrados. Cada categoría debe tener un título que refleje aspectos distintivos de la cultura organizacional, "
+        "por ejemplo, situaciones, anécdotas, historias internas o elementos que permitan expresar: 'Esto solo pasa aquí'. "
+        "Excluye de manera sistemática cualquier texto que contenga únicamente expresiones como 'Ninguna', 'N. A.', etc. No utilices estos textos para formar las categorías. "
+        "Realiza un conteo de todos los textos, considerando que están separados por el carácter '|', y calcula tanto el conteo total como el porcentaje correspondiente para cada categoría. "
+        "La salida de datos debe presentarse en el siguiente formato de tabla y debe utilizarse de manera consistente: | Categoría | Conteo | Porcentaje |."
+    )
+
 
 
     # Generamos la respuesta basada en el prompt y el texto de las respuestas
@@ -7749,6 +7868,14 @@ def generate_pregunta_51_chart(request):
     chart_url = os.path.join(settings.MEDIA_URL, 'charts', 'pregunta_51_chart.png')
 
     return chart_url
+
+
+
+
+
+
+
+
 
 
 
@@ -10662,8 +10789,10 @@ def view_results(request):
     # Llamar a la función para generar la gráfica de barras y obtener la URL de la imagen
     age_chart_url = generate_age_bar_chart(request)
     gender_chart_url = generate_gender_bar_chart(request)
+    cargo_actual_chart_url = generate_cargo_actual_chart(request)
     area_empresa_chart_url = generate_area_empresa_chart(request)
     antiguedad_empresa_chart_url = generate_antiguedad_empresa_chart(request)
+    
     table_url = tabla_datos(request)
     pregunta_1_data = generate_pregunta_1_chart(request)
     pregunta_1_chart_url = pregunta_1_data['chart_url']
@@ -10920,6 +11049,7 @@ def view_results(request):
     context = {
         'age_chart_url': age_chart_url,
         'gender_chart_url': gender_chart_url,
+        'cargo_actual_chart_url': cargo_actual_chart_url,
         'area_empresa_chart_url': area_empresa_chart_url,
         'antiguedad_empresa_chart_url': antiguedad_empresa_chart_url,
         'data_table_url': table_url,

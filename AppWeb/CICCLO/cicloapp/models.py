@@ -6,6 +6,7 @@ class DatosDemograficos(models.Model):
     nombre_usuario = models.CharField(max_length=100)
     edad = models.IntegerField()
     genero = models.CharField(max_length=50)
+    cargo_actual = models.CharField(max_length=100)
     area_empresa = models.CharField(max_length=100)
     antiguedad_empresa = models.CharField(max_length=100)
 
